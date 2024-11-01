@@ -70,7 +70,7 @@ module Motor
         when 'ActiveRecord::ConnectionAdapters::PostgreSQLAdapter'
           PostgresqlExecQuery.call(connection_class.connection, statement)
         else
-          statement = normalize_statement_for_sql(statement)
+          statement = normalize_statement_for_sql(statement, connection_class.connection)
 
           connection_class.connection.exec_query(*statement)
         end
@@ -219,10 +219,11 @@ module Motor
 
       # @param array [Array]
       # @return [Array]
-      def normalize_statement_for_sql(statement)
+      def normalize_statement_for_sql(statement, connection)
         sql, _, attributes = statement
 
         sql = ActiveRecord::Base.send(:replace_bind_variables,
+                                      connection,
                                       sql.gsub(STATEMENT_VARIABLE_REGEXP, '?'),
                                       attributes.map(&:value))
 
